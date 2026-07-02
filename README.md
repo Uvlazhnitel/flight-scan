@@ -3,6 +3,7 @@
 Weekend Radar is a small personal app that watches for cheap weekend flight ideas from Riga Airport (`RIX`) and sends a Telegram alert when a good deal appears.
 
 This repository now includes the Milestone 1 project skeleton. The app logic is still intentionally minimal, but the Python project, package layout, placeholder pipeline, tests, and tooling are in place.
+The MVP currently uses deterministic mock flight data only and does not call any real flight API.
 
 ## MVP Goal
 
@@ -59,7 +60,7 @@ For the MVP, a flight is considered a good deal when:
 ## How It Will Work
 
 1. Load secrets from environment variables and runtime config from YAML.
-2. Ask a flight provider for mock flight options from `RIX`.
+2. Ask a deterministic mock flight provider for fake flight options from `RIX`.
 3. Keep only weekend-friendly options.
 4. Compare each price to the configured threshold rules.
 5. Skip deals that were already notified recently.
@@ -87,6 +88,14 @@ Current omissions:
 - no real Telegram sending yet,
 - no production SQLite logic yet,
 - no CI yet.
+
+## Data Source
+
+For the MVP so far, flight search runs on deterministic in-repo mock data only.
+
+- no external flight APIs are called,
+- no airline websites are scraped,
+- tests stay fully offline.
 
 ## Local Setup
 

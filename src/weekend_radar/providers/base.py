@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import Protocol
 
-from weekend_radar.models import Destination, FlightOffer
+from weekend_radar.models import Destination, FlightOffer, WeekendWindow
 
 
 class FlightProvider(Protocol):
@@ -14,6 +13,7 @@ class FlightProvider(Protocol):
     async def search_weekend_flights(
         self,
         origin: str,
-        destinations: Sequence[Destination],
+        destination: Destination,
+        weekend_window: WeekendWindow,
     ) -> list[FlightOffer]:
-        """Return candidate weekend flights for the given origin and destinations."""
+        """Return candidate weekend flights for one destination and one weekend window."""

@@ -2,6 +2,7 @@ import asyncio
 from pathlib import Path
 
 from weekend_radar.config import AppSettings
+from weekend_radar.dates import generate_weekend_windows
 from weekend_radar.main import main
 from weekend_radar.models import Destination, FlightOffer
 from weekend_radar.pipeline import run_pipeline
@@ -59,28 +60,19 @@ def test_main_returns_success_with_sample_data(monkeypatch: object) -> None:
 
 def test_mock_provider_returns_flight_offer_models() -> None:
     provider = MockFlightProvider()
+    weekend_window = generate_weekend_windows()[0]
     offers = asyncio.run(
         provider.search_weekend_flights(
             origin="RIX",
-            destinations=[],
+            destination=Destination(
+                code="FCO",
+                city="Rome",
+                country="Italy",
+                nature_score=3,
+            ),
+            weekend_window=weekend_window,
         )
     )
 
-    assert offers == []
-
-    sample_offers = asyncio.run(
-        provider.search_weekend_flights(
-            origin="RIX",
-            destinations=[
-                Destination(
-                    code="FCO",
-                    city="Rome",
-                    country="Italy",
-                    nature_score=3,
-                )
-            ],
-        )
-    )
-
-    assert len(sample_offers) == 1
-    assert isinstance(sample_offers[0], FlightOffer)
+    assert offers
+    assert all(isinstance(offer, FlightOffer) for offer in offers)
