@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from weekend_radar.filters import enabled_destinations, weekend_flights
-from weekend_radar.models import Destination, FlightOffer, WeekendWindow
+from weekend_radar.models import Destination, FlightOffer, WeekendSearchRules
 
 
 def test_enabled_destinations_keeps_only_enabled_rows() -> None:
@@ -27,7 +27,7 @@ def test_enabled_destinations_keeps_only_enabled_rows() -> None:
 
 
 def test_weekend_flights_keeps_only_weekend_shape() -> None:
-    weekend_window = WeekendWindow()
+    weekend_rules = WeekendSearchRules()
     flights = [
         FlightOffer(
             provider="mock",
@@ -53,6 +53,6 @@ def test_weekend_flights_keeps_only_weekend_shape() -> None:
         ),
     ]
 
-    result = weekend_flights(flights, weekend_window)
+    result = weekend_flights(flights, weekend_rules)
 
     assert [item.destination for item in result] == ["FCO"]

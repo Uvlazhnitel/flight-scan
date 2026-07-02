@@ -15,11 +15,14 @@ def test_run_pipeline_loads_enabled_destinations_from_yaml(tmp_path: Path) -> No
 default_price_threshold_eur: 140
 destination_thresholds_eur:
   FCO: 120
-weekend_window:
-  departure_weekdays: [4, 5]
-  return_weekdays: [6, 0]
-  min_nights: 2
-  max_nights: 3
+weekend_search:
+  timezone: Europe/Riga
+  future_windows_count: 8
+  enabled_patterns:
+    - friday_evening_to_sunday_evening
+    - friday_evening_to_monday_morning
+    - saturday_morning_to_sunday_evening
+    - saturday_morning_to_monday_morning
 destinations:
   - code: FCO
     city: Rome

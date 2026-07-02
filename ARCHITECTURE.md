@@ -31,7 +31,8 @@ Expected design:
 
 - pydantic models for external and internal data,
 - explicit field names for airport codes, dates, price, currency, provider source, and timestamps,
-- an `AppConfig` YAML model that holds destinations, one active weekend window, and pricing thresholds.
+- an `AppConfig` YAML model that holds destinations, weekend-search rules, and pricing thresholds,
+- a generated `WeekendWindow` model that represents concrete search windows.
 
 ### `providers`
 
@@ -61,6 +62,7 @@ Future extension:
 
 Responsibilities:
 
+- generate concrete Riga weekend windows before provider searches,
 - filter provider results to weekend-friendly trips,
 - evaluate threshold rules from `AppConfig`,
 - convert qualifying `FlightOffer` objects into `DealCandidate` records with `DealScore`,
@@ -122,19 +124,20 @@ MVP runtime model:
 ## End-to-End Flow
 
 1. Load environment variables for secrets and file paths.
-2. Load and validate YAML config for routes, weekend rules, and thresholds.
+2. Load and validate YAML config for routes, weekend-search rules, and thresholds.
 3. Instantiate the configured `FlightProvider` implementation.
-4. Fetch mock `FlightOffer` options from `RIX`.
-5. Filter and evaluate weekend deals.
-6. Check SQLite to avoid duplicate notifications.
-7. Send Telegram alerts for new qualifying deals.
-8. Persist flight and notification state for future runs.
+4. Generate concrete `WeekendWindow` search windows in `Europe/Riga`.
+5. Fetch mock `FlightOffer` options from `RIX`.
+6. Filter and evaluate weekend deals.
+7. Check SQLite to avoid duplicate notifications.
+8. Send Telegram alerts for new qualifying deals.
+9. Persist flight and notification state for future runs.
 
 ## Data and Configuration Boundaries
 
 - Secrets belong in environment variables only.
 - Non-secret operational settings belong in YAML.
-- Route lists, thresholds, preferred destinations, and weekend-window preferences must not be moved into `.env`.
+- Route lists, thresholds, preferred destinations, and weekend-search settings must not be moved into `.env`.
 - Tests must inject configuration explicitly and must not depend on a developer machine environment.
 
 ## Testing Boundaries

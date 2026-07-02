@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from weekend_radar.models import AppConfig, Destination, FlightOffer, WeekendWindow
+from weekend_radar.models import AppConfig, Destination, FlightOffer, WeekendSearchRules
 from weekend_radar.scoring import build_deal_candidate, qualifies_price, score_flight
 
 
@@ -13,7 +13,7 @@ def test_qualifies_price_checks_threshold() -> None:
     )
     app_config = AppConfig(
         destinations=[destination],
-        weekend_window=WeekendWindow(),
+        weekend_search=WeekendSearchRules(),
         default_price_threshold_eur=140,
         destination_thresholds_eur={"FCO": 120},
     )
@@ -43,7 +43,7 @@ def test_score_flight_returns_structured_score() -> None:
     )
     app_config = AppConfig(
         destinations=[destination],
-        weekend_window=WeekendWindow(),
+        weekend_search=WeekendSearchRules(),
         default_price_threshold_eur=200,
         destination_thresholds_eur={},
     )
@@ -76,7 +76,7 @@ def test_build_deal_candidate_returns_none_for_expensive_offer() -> None:
     )
     app_config = AppConfig(
         destinations=[destination],
-        weekend_window=WeekendWindow(),
+        weekend_search=WeekendSearchRules(),
         default_price_threshold_eur=100,
         destination_thresholds_eur={},
     )
