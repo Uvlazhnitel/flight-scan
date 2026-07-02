@@ -65,7 +65,7 @@ For the MVP, a flight is considered a good deal when:
 4. Compare each price to the configured threshold rules.
 5. Skip deals that were already notified recently.
 6. Save state in SQLite.
-7. Send Telegram notifications for new good deals.
+7. Score deals, keep the best results, and send Telegram notifications for new good deals.
 
 ## Repository Status
 
@@ -147,10 +147,25 @@ uv run ruff format --check .
 
 ## Run the App
 
-The current entrypoint runs a full local mock scan. It reads the sample YAML file, initializes SQLite automatically, stores checked offers, applies filtering and scoring, and either prints notifications in dry-run mode or sends them to Telegram.
+The current app runs a full local mock scan from one command. It reads the sample YAML file, initializes SQLite automatically, stores checked offers, filters and scores them, keeps the top deals, and either prints notifications in dry-run mode or sends them to Telegram.
 
 ```bash
-uv run python -m weekend_radar.main
+uv run weekend-radar scan --dry-run
+```
+
+Useful flags:
+
+- `--dry-run`: force local printing instead of real Telegram sends
+- `--max-price 90`: override the max accepted price for this run
+- `--weeks 4`: generate only the next 4 weekend windows
+- `--direct-only`: require direct flights for this run
+- `--allow-stops`: allow stopover flights for this run
+- `--limit 5`: keep only the top 5 scored deals before duplicate checks
+
+Example:
+
+```bash
+uv run weekend-radar scan --dry-run --weeks 4 --max-price 90 --limit 5
 ```
 
 ## Current Structure
