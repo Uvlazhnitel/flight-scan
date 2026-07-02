@@ -359,6 +359,8 @@ class StateDatabase:
 
     @staticmethod
     def _normalize_timestamp(value: datetime) -> str:
-        """Serialize a timezone-aware timestamp to ISO format."""
+        """Serialize a timestamp to ISO format while preserving local-naive flight times."""
 
+        if value.tzinfo is None or value.utcoffset() is None:
+            return value.isoformat()
         return value.astimezone(UTC).isoformat()

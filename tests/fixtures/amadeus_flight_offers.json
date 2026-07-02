@@ -1,0 +1,164 @@
+{
+  "data": [
+    {
+      "type": "flight-offer",
+      "id": "1",
+      "validatingAirlineCodes": ["BT"],
+      "price": {
+        "currency": "EUR",
+        "total": "74.79"
+      },
+      "itineraries": [
+        {
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "RIX",
+                "at": "2026-07-10T18:15:00"
+              },
+              "arrival": {
+                "iataCode": "BGY",
+                "at": "2026-07-10T19:55:00"
+              },
+              "carrierCode": "BT"
+            }
+          ]
+        },
+        {
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "BGY",
+                "at": "2026-07-12T18:40:00"
+              },
+              "arrival": {
+                "iataCode": "RIX",
+                "at": "2026-07-12T22:10:00"
+              },
+              "carrierCode": "BT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flight-offer",
+      "id": "2",
+      "price": {
+        "currency": "EUR",
+        "total": "98.00"
+      },
+      "itineraries": [
+        {
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "RIX",
+                "at": "2026-07-10T16:30:00"
+              },
+              "arrival": {
+                "iataCode": "WAW",
+                "at": "2026-07-10T17:15:00"
+              },
+              "carrierCode": "LO"
+            },
+            {
+              "departure": {
+                "iataCode": "WAW",
+                "at": "2026-07-10T18:05:00"
+              },
+              "arrival": {
+                "iataCode": "BGY",
+                "at": "2026-07-10T19:45:00"
+              },
+              "carrierCode": "LO"
+            }
+          ]
+        },
+        {
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "BGY",
+                "at": "2026-07-12T19:10:00"
+              },
+              "arrival": {
+                "iataCode": "RIX",
+                "at": "2026-07-12T22:40:00"
+              },
+              "carrierCode": "LO"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flight-offer",
+      "id": "3",
+      "price": {
+        "currency": "USD",
+        "total": "120.00"
+      },
+      "itineraries": [
+        {
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "RIX",
+                "at": "2026-07-10T17:00:00"
+              },
+              "arrival": {
+                "iataCode": "BGY",
+                "at": "2026-07-10T19:00:00"
+              },
+              "carrierCode": "FR"
+            }
+          ]
+        },
+        {
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "BGY",
+                "at": "2026-07-12T20:00:00"
+              },
+              "arrival": {
+                "iataCode": "RIX",
+                "at": "2026-07-12T23:00:00"
+              },
+              "carrierCode": "FR"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "flight-offer",
+      "id": "4",
+      "price": {
+        "currency": "EUR",
+        "total": "88.00"
+      },
+      "itineraries": [
+        {
+          "segments": []
+        },
+        {
+          "segments": [
+            {
+              "departure": {
+                "iataCode": "BGY",
+                "at": "not-a-date"
+              },
+              "arrival": {
+                "iataCode": "RIX",
+                "at": "2026-07-12T22:10:00"
+              },
+              "carrierCode": "BT"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

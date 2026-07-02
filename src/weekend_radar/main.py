@@ -96,10 +96,15 @@ def print_scan_summary(result: PipelineResult) -> None:
     """Print a concise scan summary to stdout."""
 
     mode_label = "dry-run" if result.dry_run else "real Telegram send"
+    provider_label = (
+        f"{result.provider_name} (mock data)"
+        if result.provider_name == "mock"
+        else f"{result.provider_name} (live provider)"
+    )
 
     print("\n=== Scan Summary ===")
     print(f"Status: {result.status}")
-    print(f"Provider: {result.provider_name} (mock data)")
+    print(f"Provider: {provider_label}")
     print(f"Mode: {mode_label}")
     print(f"Config: {result.source}")
     print(f"SQLite: {result.db_path}")

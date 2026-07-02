@@ -2,8 +2,8 @@
 
 Weekend Radar is a small personal app that watches for cheap weekend flight ideas from Riga Airport (`RIX`) and sends a Telegram alert when a good deal appears.
 
-This repository now includes the MVP pipeline through local SQLite persistence and Telegram notification delivery. The app still uses mock flight data, but it now runs a full local scan flow, stores checked offers, suppresses duplicate alerts, and can either print notifications in dry-run mode or send them to Telegram.
-The MVP currently uses deterministic mock flight data only and does not call any real flight API.
+This repository now includes the MVP pipeline through local SQLite persistence and Telegram notification delivery. The app runs a full local scan flow, stores checked offers, suppresses duplicate alerts, and can either print notifications in dry-run mode or send them to Telegram.
+The shipped configuration still uses deterministic mock flight data by default, and there is now an optional first real provider integration through Amadeus Self-Service.
 
 ## MVP Goal
 
@@ -11,7 +11,7 @@ The MVP is a backend-only Python service that:
 
 - reads route and pricing rules from a YAML config file,
 - loads secrets from environment variables,
-- fetches mock flight data through a provider abstraction,
+- fetches flight data through a provider abstraction,
 - stores deal history and notification state in SQLite,
 - sends Telegram notifications for good weekend flight deals.
 
@@ -34,7 +34,7 @@ For the MVP, a flight is considered a good deal when:
 - `httpx` for HTTP integrations
 - SQLite for local persistence
 - Telegram for notifications
-- Mock flight provider first
+- Mock flight provider by default
 
 ## Non-Goals for MVP
 
@@ -43,7 +43,6 @@ For the MVP, a flight is considered a good deal when:
 - No booking or payments
 - No user accounts
 - No airline website scraping
-- No real flight API integration yet
 - No tests that call external APIs
 
 ## Planned Stack
@@ -60,7 +59,7 @@ For the MVP, a flight is considered a good deal when:
 ## How It Will Work
 
 1. Load secrets from environment variables and runtime config from YAML.
-2. Ask a deterministic mock flight provider for fake flight options from `RIX`.
+2. Ask the configured flight provider for weekend options from `RIX`.
 3. Filter out offers that are too expensive, indirect by default, or badly timed for a short weekend trip.
 4. Compare each price to the configured threshold rules.
 5. Skip deals that were already notified recently.
@@ -84,14 +83,23 @@ Current contents:
 
 Current omissions:
 
-- no real flight API integration yet,
+- real provider support is limited to Amadeus Self-Service,
 - no CI yet.
 
 ## Data Source
 
-For the MVP so far, flight search runs on deterministic in-repo mock data only.
+Weekend Radar currently supports two provider modes:
 
-- no external flight APIs are called,
+- `mock`: deterministic in-repo sample offers for safe local testing,
+- `amadeus`: live Amadeus Self-Service Flight Offers Search data.
+
+Important current provider limitations:
+
+- the shipped config stays on `provider: mock`,
+- Amadeus quotas and test-environment limits apply,
+- Amadeus Self-Service does not include some carriers such as low-cost carriers, American Airlines, Delta, and British Airways,
+- booking URLs are not returned by this provider in this milestone,
+- only offers already priced in `EUR` are accepted in the current Amadeus integration,
 - no airline websites are scraped,
 - tests stay fully offline.
 
@@ -140,6 +148,24 @@ Expected first-run result:
 - a SQLite file is created at `data/weekend_radar.sqlite3`,
 - the summary says the provider is `mock` and the mode is `dry-run`.
 
+## Real Provider Setup
+
+If you want to try the first live provider instead of mock data:
+
+1. Create an app in [Amadeus for Developers](https://developers.amadeus.com/).
+2. Copy your API key into `AMADEUS_API_KEY` in `.env`.
+3. Copy your API secret into `AMADEUS_API_SECRET` in `.env`.
+4. Change `provider: mock` to `provider: amadeus` in [data/destinations.yaml](/Users/uvlazhnitel/Documents/flight-scan/data/destinations.yaml).
+5. Keep `WEEKEND_RADAR_TELEGRAM_DRY_RUN=true` for the first live test run.
+6. Run `uv run weekend-radar scan --dry-run`.
+
+Operator notes for Amadeus:
+
+- this integration uses the Amadeus Self-Service test environment by default,
+- missing `AMADEUS_API_KEY` or `AMADEUS_API_SECRET` will fail the run early with a clear error,
+- the app skips malformed API offers instead of crashing the whole scan,
+- the app skips non-EUR offers for now rather than converting currencies.
+
 ## Telegram Setup
 
 1. Open Telegram and message [@BotFather](https://t.me/BotFather).
@@ -186,9 +212,9 @@ Repeated runs may print fewer deals, or none at all, because duplicate notificat
 
 Important operator note:
 
-- dry-run still uses mock data, not real flight search,
-- dry-run messages are examples of what the app would send,
-- real Telegram mode changes delivery only; it does not change the fact that the current provider is mock-only.
+- dry-run prints whatever the current provider produced, instead of sending it to Telegram,
+- with the shipped config that still means mock data,
+- real Telegram mode changes delivery only; it does not change which provider is selected in YAML.
 
 ## Current Structure
 
@@ -206,6 +232,7 @@ src/weekend_radar/
   pipeline.py
   providers/
     __init__.py
+    amadeus.py
     base.py
     mock.py
 

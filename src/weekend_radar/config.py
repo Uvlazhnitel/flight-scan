@@ -33,6 +33,11 @@ class AppSettings(BaseSettings):
     telegram_dry_run: bool = True
     telegram_bot_token: str | None = Field(default=None, validation_alias="TELEGRAM_BOT_TOKEN")
     telegram_chat_id: str | None = Field(default=None, validation_alias="TELEGRAM_CHAT_ID")
+    amadeus_api_key: str | None = Field(default=None, validation_alias="AMADEUS_API_KEY")
+    amadeus_api_secret: str | None = Field(
+        default=None,
+        validation_alias="AMADEUS_API_SECRET",
+    )
 
 
 def load_settings() -> AppSettings:

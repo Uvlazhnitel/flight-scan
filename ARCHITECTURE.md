@@ -50,13 +50,16 @@ class FlightProvider(Protocol):
         ...
 ```
 
-MVP provider set:
+Current provider set:
 
-- `MockFlightProvider` only.
+- `MockFlightProvider` as the default local-safe provider.
+- `AmadeusFlightProvider` as the first live provider behind the same interface.
 
-Future extension:
+Live-provider notes:
 
-- additional providers can implement the same contract without changing deal selection or notification code.
+- provider selection is configured in YAML with `provider: mock | amadeus`,
+- Amadeus credentials stay in environment variables only,
+- provider-specific parsing and retries stay inside the provider module so business logic does not change.
 
 ### `deals`
 
@@ -134,7 +137,7 @@ MVP runtime model:
 2. Load and validate YAML config for routes, weekend-search rules, and thresholds.
 3. Instantiate the configured `FlightProvider` implementation.
 4. Generate concrete `WeekendWindow` search windows in `Europe/Riga`.
-5. Fetch mock `FlightOffer` options from `RIX`.
+5. Fetch `FlightOffer` options from the configured provider for `RIX`.
 6. Filter and evaluate weekend deals.
 7. Persist every checked offer in SQLite with a stable deal key.
 8. Rank all scored candidates and keep only the top N for this run.
@@ -152,7 +155,7 @@ MVP runtime model:
 
 ## Testing Boundaries
 
-- Provider tests use fixtures and deterministic mock responses.
+- Provider tests use fixtures and mocked HTTP responses.
 - Notifier tests mock `httpx` and never send real Telegram requests.
 - Storage tests use temporary SQLite databases.
 - Runner integration tests use temp files and mocked boundaries with no real network access.
@@ -169,7 +172,6 @@ These interfaces should remain stable once introduced because they separate repl
 
 ## Future Extension Points
 
-- swap `MockFlightProvider` for a live provider,
 - add multiple providers behind the same interface,
 - add richer deal ranking without changing transport code,
 - add extra notification channels later if desired.
