@@ -151,10 +151,9 @@ class FlightOffer(BaseModel):
 class DealScore(BaseModel):
     """A transparent score describing why a flight offer is attractive."""
 
-    threshold_eur: int = Field(gt=0)
-    price_margin_eur: int = Field(ge=0)
-    destination_bonus: int = Field(ge=0)
-    total_score: int = Field(ge=0)
+    total_score: int
+    reasons: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
 
 
 class DealCandidate(BaseModel):
