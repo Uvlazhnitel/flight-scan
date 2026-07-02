@@ -1,6 +1,12 @@
 from pathlib import Path
 
-from weekend_radar.config import DEFAULT_DATA_PATH, AppSettings, load_app_config
+from weekend_radar.config import (
+    DEFAULT_DATA_PATH,
+    AppSettings,
+    ConfigLoadError,
+    load_app_config,
+    validate_settings,
+)
 
 ALLOWED_TAGS = {
     "hiking",
@@ -26,6 +32,20 @@ def test_app_settings_read_telegram_credentials_without_prefix(monkeypatch: obje
     assert settings.telegram_bot_token == "plain-token"
     assert settings.telegram_chat_id == "plain-chat"
     assert settings.telegram_dry_run is False
+
+
+def test_validate_settings_rejects_placeholder_paths() -> None:
+    settings = AppSettings(
+        config_path="replace-me",
+        db_path="replace-me",
+    )
+
+    try:
+        validate_settings(settings)
+    except ConfigLoadError as exc:
+        assert "WEEKEND_RADAR_CONFIG_PATH" in str(exc)
+    else:
+        raise AssertionError("Expected ConfigLoadError for placeholder config path")
 
 
 def test_shipped_destinations_yaml_validates_as_app_config() -> None:

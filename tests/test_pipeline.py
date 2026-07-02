@@ -5,12 +5,13 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import httpx
+import pytest
 
 from weekend_radar.config import AppSettings
 from weekend_radar.dates import generate_weekend_windows
 from weekend_radar.main import main
 from weekend_radar.models import Destination, FlightOffer, ScanOverrides
-from weekend_radar.pipeline import run_pipeline
+from weekend_radar.pipeline import PipelineRunError, run_pipeline
 from weekend_radar.providers.mock import MockFlightProvider
 
 RIGA = ZoneInfo("Europe/Riga")
@@ -182,6 +183,53 @@ def test_run_pipeline_continues_when_telegram_send_fails(
         connection.close()
 
     assert notified_rows == 0
+
+
+def test_run_pipeline_marks_scan_failed_when_provider_raises(
+    tmp_path: Path,
+    monkeypatch: object,
+) -> None:
+    settings = build_settings(tmp_path, dry_run=True)
+    current_at = datetime(2026, 7, 6, 12, 0, tzinfo=RIGA)
+
+    async def fake_search_weekend_flights(*args: object, **kwargs: object) -> list[FlightOffer]:
+        raise RuntimeError("provider down")
+
+    monkeypatch.setattr(
+        "weekend_radar.providers.mock.MockFlightProvider.search_weekend_flights",
+        fake_search_weekend_flights,
+    )
+
+    with pytest.raises(PipelineRunError):
+        run_pipeline(settings, current_at=current_at)
+
+    connection = sqlite3.connect(settings.db_path)
+    try:
+        scan_status = connection.execute(
+            "SELECT status FROM scan_runs ORDER BY id DESC LIMIT 1"
+        ).fetchone()[0]
+    finally:
+        connection.close()
+
+    assert scan_status == "failed"
+
+
+def test_run_pipeline_fails_cleanly_when_real_send_lacks_credentials(tmp_path: Path) -> None:
+    config_path = tmp_path / "destinations.yaml"
+    write_config(config_path)
+    settings = AppSettings(
+        config_path=config_path,
+        db_path=tmp_path / "weekend_radar.sqlite3",
+        log_level="INFO",
+        telegram_dry_run=False,
+        telegram_bot_token=None,
+        telegram_chat_id=None,
+    )
+
+    with pytest.raises(PipelineRunError) as exc_info:
+        run_pipeline(settings)
+
+    assert "requires TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID" in str(exc_info.value)
 
 
 def test_main_returns_success_with_sample_data(monkeypatch: object) -> None:

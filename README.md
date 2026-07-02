@@ -126,11 +126,19 @@ Telegram delivery now works in two modes:
 2. Install `uv`.
 3. Copy `.env.example` to `.env`.
 4. Sync dependencies.
+5. Run the safest first scan in dry-run mode.
 
 ```bash
 cp .env.example .env
 uv sync
+uv run weekend-radar scan --dry-run
 ```
+
+Expected first-run result:
+
+- the app prints mock weekend deal messages to your terminal,
+- a SQLite file is created at `data/weekend_radar.sqlite3`,
+- the summary says the provider is `mock` and the mode is `dry-run`.
 
 ## Telegram Setup
 
@@ -173,6 +181,14 @@ Example:
 ```bash
 uv run weekend-radar scan --dry-run --weeks 4 --max-price 90 --limit 5
 ```
+
+Repeated runs may print fewer deals, or none at all, because duplicate notifications are suppressed once the same route/date/provider combination has already been notified recently.
+
+Important operator note:
+
+- dry-run still uses mock data, not real flight search,
+- dry-run messages are examples of what the app would send,
+- real Telegram mode changes delivery only; it does not change the fact that the current provider is mock-only.
 
 ## Current Structure
 

@@ -213,6 +213,8 @@ class PipelineResult(BaseModel):
     """A small result object for the bootstrap runner."""
 
     status: str
+    provider_name: str
+    dry_run: bool
     destination_count: int = 0
     weekend_window_count: int = 0
     checked_offer_count: int = 0

@@ -5,12 +5,16 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from pydantic import Field
+from pydantic import Field, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from weekend_radar.models import AppConfig
 
 DEFAULT_DATA_PATH = Path("data/destinations.yaml")
+
+
+class ConfigLoadError(RuntimeError):
+    """A beginner-friendly configuration error."""
 
 
 class AppSettings(BaseSettings):
@@ -37,8 +41,38 @@ def load_settings() -> AppSettings:
     return AppSettings()
 
 
+def validate_settings(settings: AppSettings) -> None:
+    """Reject placeholder path values that would make first-run UX confusing."""
+
+    if str(settings.config_path) == "replace-me":
+        raise ConfigLoadError(
+            "WEEKEND_RADAR_CONFIG_PATH still uses 'replace-me'. "
+            "Set it to data/destinations.yaml or remove it from .env."
+        )
+    if str(settings.db_path) == "replace-me":
+        raise ConfigLoadError(
+            "WEEKEND_RADAR_DB_PATH still uses 'replace-me'. "
+            "Set it to data/weekend_radar.sqlite3 or remove it from .env."
+        )
+
+
 def load_app_config(path: Path) -> AppConfig:
     """Read and validate non-secret app config from YAML."""
 
-    raw_data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return AppConfig.model_validate(raw_data)
+    try:
+        raw_data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except FileNotFoundError as exc:
+        raise ConfigLoadError(
+            f"Config file not found at {path}. Check WEEKEND_RADAR_CONFIG_PATH."
+        ) from exc
+    except yaml.YAMLError as exc:
+        raise ConfigLoadError(
+            f"Config file at {path} is not valid YAML. Fix the YAML syntax and try again."
+        ) from exc
+
+    try:
+        return AppConfig.model_validate(raw_data)
+    except ValidationError as exc:
+        raise ConfigLoadError(
+            f"Config file at {path} is invalid: {exc.errors()[0]['msg']}"
+        ) from exc
