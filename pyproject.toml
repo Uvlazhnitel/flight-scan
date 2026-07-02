@@ -11,6 +11,9 @@ dependencies = [
   "pyyaml>=6.0,<7.0",
 ]
 
+[project.scripts]
+weekend-radar = "weekend_radar.main:main"
+
 [dependency-groups]
 dev = [
   "pytest>=8.2,<9.0",
@@ -43,4 +46,3 @@ select = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-

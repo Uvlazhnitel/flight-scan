@@ -66,6 +66,7 @@ Responsibilities:
 - filter provider results to weekend-friendly trips,
 - reject offers that are too expensive, indirect when direct-only is enabled, badly timed, too short or too long, or tied to disabled destinations,
 - score surviving offers with explainable reasons and warnings,
+- rank scored candidates globally and keep the top deals for notification,
 - convert surviving `FlightOffer` objects into `DealCandidate` records with explainable `DealScore`,
 - decide whether a deal is new enough to notify after storage lookup.
 
@@ -116,6 +117,7 @@ MVP notifier set:
 Responsibilities:
 
 - coordinate one full app run,
+- accept one-run CLI overrides layered on top of YAML/env settings,
 - call config loading, provider fetch, deal evaluation, storage, and notification steps in order,
 - serve as the entrypoint for cron or systemd scheduling.
 
@@ -123,6 +125,7 @@ MVP runtime model:
 
 - one process,
 - one local SQLite file,
+- one CLI command: `weekend-radar scan`,
 - scheduled on a local host or small server.
 
 ## End-to-End Flow
@@ -134,10 +137,11 @@ MVP runtime model:
 5. Fetch mock `FlightOffer` options from `RIX`.
 6. Filter and evaluate weekend deals.
 7. Persist every checked offer in SQLite with a stable deal key.
-8. Check SQLite to avoid duplicate notifications for the same origin, destination, dates, and provider.
-9. Re-notify only when the price improved by at least `15 EUR` or the previous alert is older than `14 days`.
-10. Send Telegram alerts for new qualifying deals or print them in dry-run mode.
-11. Persist notification history only after a successful send or intentional dry-run delivery.
+8. Rank all scored candidates and keep only the top N for this run.
+9. Check SQLite to avoid duplicate notifications for the same origin, destination, dates, and provider.
+10. Re-notify only when the price improved by at least `15 EUR` or the previous alert is older than `14 days`.
+11. Send Telegram alerts for new qualifying deals or print them in dry-run mode.
+12. Persist notification history only after a successful send or intentional dry-run delivery.
 
 ## Data and Configuration Boundaries
 

@@ -164,6 +164,16 @@ class DealCandidate(BaseModel):
     score: DealScore
 
 
+class ScanOverrides(BaseModel):
+    """Per-run CLI overrides that sit on top of YAML and environment defaults."""
+
+    dry_run: bool | None = None
+    max_price: int | None = Field(default=None, gt=0)
+    weeks: int | None = Field(default=None, ge=1)
+    direct_only: bool | None = None
+    limit: int = Field(default=10, ge=1)
+
+
 class AppConfig(BaseModel):
     """Validated non-secret runtime config loaded from YAML."""
 
@@ -207,9 +217,11 @@ class PipelineResult(BaseModel):
     weekend_window_count: int = 0
     checked_offer_count: int = 0
     candidate_count: int = 0
+    selected_top_deal_count: int = 0
     notified_count: int = 0
     skipped_duplicate_count: int = 0
     failed_notification_count: int = 0
     scan_run_id: int | None = None
+    db_path: str
     source: str
     message: str
