@@ -61,7 +61,7 @@ For the MVP, a flight is considered a good deal when:
 
 1. Load secrets from environment variables and runtime config from YAML.
 2. Ask a deterministic mock flight provider for fake flight options from `RIX`.
-3. Keep only weekend-friendly options.
+3. Filter out offers that are too expensive, indirect by default, or badly timed for a short weekend trip.
 4. Compare each price to the configured threshold rules.
 5. Skip deals that were already notified recently.
 6. Save state in SQLite.
@@ -96,6 +96,13 @@ For the MVP so far, flight search runs on deterministic in-repo mock data only.
 - no external flight APIs are called,
 - no airline websites are scraped,
 - tests stay fully offline.
+
+The app also applies practical weekend filters before later scoring:
+
+- max price is configurable and defaults to `120 EUR`,
+- direct flights are required by default,
+- offers with awkward departure or arrival times are rejected,
+- disabled destinations are ignored.
 
 ## Local Setup
 

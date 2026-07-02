@@ -11,6 +11,9 @@ weekend_search:
     - friday_evening_to_monday_morning
     - saturday_morning_to_sunday_evening
     - saturday_morning_to_monday_morning
+offer_filters:
+  max_price_eur: 120
+  direct_only: true
 destinations:
   - code: FCO
     city: Rome

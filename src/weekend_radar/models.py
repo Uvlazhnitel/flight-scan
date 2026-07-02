@@ -93,6 +93,13 @@ class WeekendWindow(BaseModel):
         return self
 
 
+class OfferFilterRules(BaseModel):
+    """Configurable rules for deciding whether a weekend flight offer is practically useful."""
+
+    max_price_eur: int = Field(default=120, gt=0)
+    direct_only: bool = True
+
+
 class FlightOffer(BaseModel):
     """A round-trip flight offer returned by a provider and evaluated by the pipeline."""
 
@@ -165,6 +172,7 @@ class AppConfig(BaseModel):
 
     destinations: list[Destination] = Field(default_factory=list)
     weekend_search: WeekendSearchRules
+    offer_filters: OfferFilterRules = Field(default_factory=OfferFilterRules)
     default_price_threshold_eur: int = Field(gt=0)
     destination_thresholds_eur: dict[str, int] = Field(default_factory=dict)
 

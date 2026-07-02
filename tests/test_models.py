@@ -7,6 +7,7 @@ from weekend_radar.models import (
     AppConfig,
     Destination,
     FlightOffer,
+    OfferFilterRules,
     WeekendSearchRules,
     WeekendWindow,
 )
@@ -108,6 +109,7 @@ def test_app_config_normalizes_threshold_overrides() -> None:
             )
         ],
         weekend_search=WeekendSearchRules(),
+        offer_filters=OfferFilterRules(),
         default_price_threshold_eur=140,
         destination_thresholds_eur={"bcn": 150},
     )
@@ -127,6 +129,14 @@ def test_app_config_rejects_unknown_threshold_override_code() -> None:
                 )
             ],
             weekend_search=WeekendSearchRules(),
+            offer_filters=OfferFilterRules(),
             default_price_threshold_eur=140,
             destination_thresholds_eur={"ATH": 150},
         )
+
+
+def test_offer_filter_rules_have_expected_defaults() -> None:
+    rules = OfferFilterRules()
+
+    assert rules.max_price_eur == 120
+    assert rules.direct_only is True

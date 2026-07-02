@@ -64,6 +64,7 @@ Responsibilities:
 
 - generate concrete Riga weekend windows before provider searches,
 - filter provider results to weekend-friendly trips,
+- reject offers that are too expensive, indirect when direct-only is enabled, badly timed, too short or too long, or tied to disabled destinations,
 - evaluate threshold rules from `AppConfig`,
 - convert qualifying `FlightOffer` objects into `DealCandidate` records with `DealScore`,
 - decide whether a deal is new enough to notify after storage lookup.
