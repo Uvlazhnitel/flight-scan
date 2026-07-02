@@ -2,7 +2,7 @@
 
 Weekend Radar is a small personal app that watches for cheap weekend flight ideas from Riga Airport (`RIX`) and sends a Telegram alert when a good deal appears.
 
-This repository is currently in the planning stage. It contains project guidance and delivery documents only. No application code has been implemented yet.
+This repository now includes the Milestone 1 project skeleton. The app logic is still intentionally minimal, but the Python project, package layout, placeholder pipeline, tests, and tooling are in place.
 
 ## MVP Goal
 
@@ -70,6 +70,10 @@ For the MVP, a flight is considered a good deal when:
 
 Current contents:
 
+- `pyproject.toml`
+- `src/weekend_radar/`
+- `tests/`
+- `data/destinations.yaml`
 - `README.md`
 - `PLAN.md`
 - `ARCHITECTURE.md`
@@ -79,28 +83,66 @@ Current contents:
 
 Current omissions:
 
-- no Python package yet,
-- no `pyproject.toml` yet,
-- no YAML sample config yet,
-- no tests yet,
+- no real flight API integration yet,
+- no real Telegram sending yet,
+- no production SQLite logic yet,
 - no CI yet.
 
-## Setup Guidance
-
-This step is documentation-only for now. The actual commands will become valid once implementation begins.
+## Local Setup
 
 1. Install Python 3.12 or newer.
 2. Install `uv`.
-3. Copy `.env.example` to `.env` and fill in real secret values.
-4. Create the YAML config file once the config schema is implemented.
-5. Run lint and tests after the project files exist.
-
-Planned future commands:
+3. Copy `.env.example` to `.env`.
+4. Sync dependencies.
 
 ```bash
+cp .env.example .env
+uv sync
+```
+
+## Run Checks
+
+```bash
+uv run pytest
 uv run ruff check .
 uv run ruff format --check .
-uv run pytest
+```
+
+## Run the Skeleton
+
+The current entrypoint only proves that the project is wired correctly. It reads the sample YAML file, configures logging, and exits successfully.
+
+```bash
+uv run python -m weekend_radar.main
+```
+
+## Current Structure
+
+```text
+src/weekend_radar/
+  __init__.py
+  main.py
+  config.py
+  models.py
+  dates.py
+  filters.py
+  scoring.py
+  db.py
+  telegram.py
+  pipeline.py
+  providers/
+    __init__.py
+    base.py
+    mock.py
+
+tests/
+  test_dates.py
+  test_filters.py
+  test_scoring.py
+  test_pipeline.py
+
+data/
+  destinations.yaml
 ```
 
 ## Next Reading

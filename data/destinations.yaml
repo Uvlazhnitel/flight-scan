@@ -1,0 +1,19 @@
+destinations:
+  - origin: RIX
+    destination: FCO
+    city: Rome
+    country: Italy
+    enabled: true
+    threshold_eur: 120
+  - origin: RIX
+    destination: BCN
+    city: Barcelona
+    country: Spain
+    enabled: true
+    threshold_eur: 150
+  - origin: RIX
+    destination: ATH
+    city: Athens
+    country: Greece
+    enabled: false
+    threshold_eur: 170
