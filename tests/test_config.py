@@ -77,3 +77,17 @@ def test_shipped_destination_tags_use_only_allowed_vocabulary() -> None:
 
     for destination in app_config.destinations:
         assert set(destination.tags).issubset(ALLOWED_TAGS)
+
+
+def test_release_readiness_workflow_exists_with_expected_commands() -> None:
+    workflow_path = Path(".github/workflows/release-readiness.yml")
+    workflow_text = workflow_path.read_text(encoding="utf-8")
+
+    assert workflow_path.exists()
+    assert "workflow_dispatch:" in workflow_text
+    assert "pull_request:" in workflow_text
+    assert "push:" in workflow_text
+    assert "uv sync --dev" in workflow_text
+    assert "uv run pytest" in workflow_text
+    assert "uv run ruff check ." in workflow_text
+    assert "uv run ruff format --check ." in workflow_text
