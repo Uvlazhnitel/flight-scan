@@ -34,13 +34,14 @@ def main() -> int:
     logger.info(
         (
             "Generated %s windows, checked %s offers, scored %s candidates, "
-            "sent %s notifications, skipped %s duplicates"
+            "sent %s notifications, skipped %s duplicates, failed %s notifications"
         ),
         result.weekend_window_count,
         result.checked_offer_count,
         result.candidate_count,
         result.notified_count,
         result.skipped_duplicate_count,
+        result.failed_notification_count,
     )
     return 0
 

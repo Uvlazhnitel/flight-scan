@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from weekend_radar.models import AppConfig
@@ -19,13 +20,15 @@ class AppSettings(BaseSettings):
         env_prefix="WEEKEND_RADAR_",
         env_file=".env",
         extra="ignore",
+        populate_by_name=True,
     )
 
     config_path: Path = DEFAULT_DATA_PATH
     db_path: Path = Path("data/weekend_radar.sqlite3")
     log_level: str = "INFO"
-    telegram_bot_token: str | None = None
-    telegram_chat_id: str | None = None
+    telegram_dry_run: bool = True
+    telegram_bot_token: str | None = Field(default=None, validation_alias="TELEGRAM_BOT_TOKEN")
+    telegram_chat_id: str | None = Field(default=None, validation_alias="TELEGRAM_CHAT_ID")
 
 
 def load_settings() -> AppSettings:

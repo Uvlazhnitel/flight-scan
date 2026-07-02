@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -16,6 +17,7 @@ from weekend_radar.scoring import build_deal_candidate
 from weekend_radar.telegram import TelegramNotifier
 
 DEFAULT_ORIGIN = "RIX"
+LOGGER = logging.getLogger("weekend_radar.pipeline")
 
 
 async def _search_all_offers(
@@ -53,12 +55,17 @@ def run_pipeline(
     scan_started_at = current_at.astimezone(UTC) if current_at is not None else datetime.now(UTC)
     scan_run_id = database.start_scan_run(started_at=scan_started_at)
     provider = MockFlightProvider()
-    notifier = TelegramNotifier(chat_id=app_settings.telegram_chat_id)
+    notifier = TelegramNotifier(
+        chat_id=app_settings.telegram_chat_id,
+        bot_token=app_settings.telegram_bot_token,
+        dry_run=app_settings.telegram_dry_run,
+    )
 
     checked_offer_count = 0
     candidate_count = 0
     notified_count = 0
     skipped_duplicate_count = 0
+    failed_notification_count = 0
 
     try:
         search_results = asyncio.run(
@@ -85,13 +92,22 @@ def run_pipeline(
                 decision = database.should_notify(candidate, evaluated_at=offer.checked_at)
                 if decision.should_notify:
                     message_text = notifier.format_deal_candidate(candidate)
-                    database.record_notification(
-                        candidate,
-                        message_text=message_text,
-                        scan_run_id=scan_run_id,
-                        notified_at=offer.checked_at,
-                    )
-                    notified_count += 1
+                    if notifier.send_deal(candidate):
+                        database.record_notification(
+                            candidate,
+                            message_text=message_text,
+                            scan_run_id=scan_run_id,
+                            notified_at=offer.checked_at,
+                        )
+                        notified_count += 1
+                    else:
+                        failed_notification_count += 1
+                        LOGGER.error(
+                            "Notification failed for %s -> %s on %s",
+                            offer.origin,
+                            offer.destination,
+                            offer.depart_at.date().isoformat(),
+                        )
                 else:
                     skipped_duplicate_count += 1
     finally:
@@ -114,7 +130,8 @@ def run_pipeline(
         candidate_count=candidate_count,
         notified_count=notified_count,
         skipped_duplicate_count=skipped_duplicate_count,
+        failed_notification_count=failed_notification_count,
         scan_run_id=scan_run_id,
         source=str(app_settings.config_path),
-        message="Weekend Radar completed a mock scan with SQLite persistence enabled.",
+        message="Weekend Radar completed a mock scan with Telegram notification handling.",
     )

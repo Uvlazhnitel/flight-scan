@@ -154,5 +154,8 @@ def test_deal_message_can_use_score_reasons() -> None:
 
     message = notifier.format_deal_candidate(candidate)
 
-    assert "Score: 92" in message
-    assert "Exceptional price at or below 50 EUR" in message
+    assert "🔥 Weekend deal from Riga" in message
+    assert "Route: RIX -> FCO / Rome" in message
+    assert "Price found: EUR 49" in message
+    assert "Score: 92/100" in message
+    assert "- Exceptional price at or below 50 EUR" in message

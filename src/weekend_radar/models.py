@@ -209,6 +209,7 @@ class PipelineResult(BaseModel):
     candidate_count: int = 0
     notified_count: int = 0
     skipped_duplicate_count: int = 0
+    failed_notification_count: int = 0
     scan_run_id: int | None = None
     source: str
     message: str
