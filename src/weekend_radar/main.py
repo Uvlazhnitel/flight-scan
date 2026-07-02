@@ -1,4 +1,4 @@
-"""Command-line entrypoint for the Weekend Radar skeleton."""
+"""Command-line entrypoint for Weekend Radar."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ def configure_logging(level: str) -> None:
 
 
 def main() -> int:
-    """Run the skeleton pipeline and log the result."""
+    """Run one full mock-backed pipeline scan and log the outcome."""
 
     settings = load_settings()
     configure_logging(settings.log_level)
@@ -30,6 +30,17 @@ def main() -> int:
         "Loaded %s enabled destinations from %s",
         result.destination_count,
         result.source,
+    )
+    logger.info(
+        (
+            "Generated %s windows, checked %s offers, scored %s candidates, "
+            "sent %s notifications, skipped %s duplicates"
+        ),
+        result.weekend_window_count,
+        result.checked_offer_count,
+        result.candidate_count,
+        result.notified_count,
+        result.skipped_duplicate_count,
     )
     return 0
 

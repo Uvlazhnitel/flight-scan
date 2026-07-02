@@ -83,9 +83,10 @@ Responsibilities:
 
 Expected interface shape:
 
-- initialize database schema,
-- upsert or insert flight/deal records,
-- query whether an equivalent deal has already been notified,
+- initialize database schema automatically,
+- insert every checked offer into SQLite,
+- create scan-run history rows,
+- query the latest notification for a stable deal key,
 - record successful notification events.
 
 ### `notifications`
@@ -130,9 +131,10 @@ MVP runtime model:
 4. Generate concrete `WeekendWindow` search windows in `Europe/Riga`.
 5. Fetch mock `FlightOffer` options from `RIX`.
 6. Filter and evaluate weekend deals.
-7. Check SQLite to avoid duplicate notifications.
-8. Send Telegram alerts for new qualifying deals.
-9. Persist flight and notification state for future runs.
+7. Persist every checked offer in SQLite with a stable deal key.
+8. Check SQLite to avoid duplicate notifications for the same origin, destination, dates, and provider.
+9. Re-notify only when the price improved by at least `15 EUR` or the previous alert is older than `14 days`.
+10. Send Telegram alerts for new qualifying deals and persist notification history.
 
 ## Data and Configuration Boundaries
 
