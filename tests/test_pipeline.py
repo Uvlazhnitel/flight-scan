@@ -1,4 +1,5 @@
 import asyncio
+import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -15,11 +16,13 @@ from weekend_radar.pipeline import PipelineRunError, run_pipeline
 from weekend_radar.providers.mock import MockFlightProvider
 
 RIGA = ZoneInfo("Europe/Riga")
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
-def write_config(path: Path) -> None:
+def write_config(path: Path, *, provider: str = "mock") -> None:
     path.write_text(
-        """
+        f"""
+provider: {provider}
 default_price_threshold_eur: 140
 destination_thresholds_eur:
   FCO: 120
@@ -45,9 +48,16 @@ destinations:
     )
 
 
-def build_settings(tmp_path: Path, *, dry_run: bool = True) -> AppSettings:
+def build_settings(
+    tmp_path: Path,
+    *,
+    dry_run: bool = True,
+    provider: str = "mock",
+    amadeus_api_key: str | None = "amadeus-key",
+    amadeus_api_secret: str | None = "amadeus-secret",
+) -> AppSettings:
     config_path = tmp_path / "destinations.yaml"
-    write_config(config_path)
+    write_config(config_path, provider=provider)
     return AppSettings(
         config_path=config_path,
         db_path=tmp_path / "weekend_radar.sqlite3",
@@ -55,7 +65,13 @@ def build_settings(tmp_path: Path, *, dry_run: bool = True) -> AppSettings:
         telegram_dry_run=dry_run,
         telegram_bot_token="secret-token",
         telegram_chat_id="12345",
+        amadeus_api_key=amadeus_api_key,
+        amadeus_api_secret=amadeus_api_secret,
     )
+
+
+def load_fixture(name: str) -> dict[str, object]:
+    return json.loads((FIXTURES_DIR / name).read_text(encoding="utf-8"))
 
 
 def test_run_pipeline_dry_run_records_notifications(tmp_path: Path) -> None:
@@ -216,7 +232,7 @@ def test_run_pipeline_marks_scan_failed_when_provider_raises(
 
 def test_run_pipeline_fails_cleanly_when_real_send_lacks_credentials(tmp_path: Path) -> None:
     config_path = tmp_path / "destinations.yaml"
-    write_config(config_path)
+    write_config(config_path, provider="mock")
     settings = AppSettings(
         config_path=config_path,
         db_path=tmp_path / "weekend_radar.sqlite3",
@@ -230,6 +246,64 @@ def test_run_pipeline_fails_cleanly_when_real_send_lacks_credentials(tmp_path: P
         run_pipeline(settings)
 
     assert "requires TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID" in str(exc_info.value)
+
+
+def test_run_pipeline_fails_cleanly_when_amadeus_credentials_are_missing(tmp_path: Path) -> None:
+    settings = build_settings(
+        tmp_path,
+        provider="amadeus",
+        amadeus_api_key=None,
+        amadeus_api_secret=None,
+    )
+
+    with pytest.raises(PipelineRunError) as exc_info:
+        run_pipeline(settings)
+
+    assert "AMADEUS_API_KEY and AMADEUS_API_SECRET" in str(exc_info.value)
+
+
+def test_run_pipeline_supports_amadeus_provider_with_mocked_http(
+    tmp_path: Path,
+    monkeypatch: object,
+) -> None:
+    settings = build_settings(tmp_path, dry_run=True, provider="amadeus")
+    current_at = datetime(2026, 7, 6, 12, 0, tzinfo=RIGA)
+
+    async def fake_request(
+        self: httpx.AsyncClient,
+        method: str,
+        url: str,
+        **kwargs: object,
+    ) -> httpx.Response:
+        request = self.build_request(method, url, **kwargs)
+        if url == "/v1/security/oauth2/token":
+            return httpx.Response(
+                200,
+                json={"access_token": "token-123", "expires_in": 1800},
+                request=request,
+            )
+        if url == "/v2/shopping/flight-offers":
+            return httpx.Response(
+                200,
+                json=load_fixture("amadeus_flight_offers.json"),
+                request=request,
+            )
+        raise AssertionError(f"Unexpected Amadeus path: {url}")
+
+    monkeypatch.setattr("weekend_radar.providers.amadeus.httpx.AsyncClient.request", fake_request)
+
+    result = run_pipeline(
+        settings,
+        current_at=current_at,
+        overrides=ScanOverrides(dry_run=True, weeks=1, limit=10),
+    )
+
+    assert result.status == "ok"
+    assert result.provider_name == "amadeus"
+    assert result.checked_offer_count == 2
+    assert result.candidate_count == 1
+    assert result.notified_count == 1
+    assert result.failed_notification_count == 0
 
 
 def test_main_returns_success_with_sample_data(monkeypatch: object) -> None:

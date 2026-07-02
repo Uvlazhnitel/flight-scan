@@ -1,3 +1,4 @@
+provider: mock
 default_price_threshold_eur: 140
 destination_thresholds_eur:
   DUB: 170

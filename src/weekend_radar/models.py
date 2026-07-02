@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -179,6 +179,7 @@ class AppConfig(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
+    provider: Literal["mock", "amadeus"] = "mock"
     destinations: list[Destination] = Field(default_factory=list)
     weekend_search: WeekendSearchRules
     offer_filters: OfferFilterRules = Field(default_factory=OfferFilterRules)

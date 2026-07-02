@@ -22,13 +22,13 @@ from weekend_radar.models import (
     WeekendSearchRules,
     WeekendWindow,
 )
-from weekend_radar.providers.mock import MockFlightProvider
+from weekend_radar.providers import build_provider
+from weekend_radar.providers.base import FlightProvider, ProviderConfigurationError, ProviderError
 from weekend_radar.scoring import build_deal_candidate
 from weekend_radar.telegram import TelegramNotifier
 
 DEFAULT_ORIGIN = "RIX"
 DEFAULT_LIMIT = 10
-PROVIDER_NAME = "mock"
 LOGGER = logging.getLogger("weekend_radar.pipeline")
 
 
@@ -38,7 +38,7 @@ class PipelineRunError(RuntimeError):
 
 async def _search_all_offers(
     *,
-    provider: MockFlightProvider,
+    provider: FlightProvider,
     origin: str,
     destinations: list[Destination],
     weekend_windows: list[WeekendWindow],
@@ -84,6 +84,15 @@ def _resolve_dry_run(settings: AppSettings, overrides: ScanOverrides | None) -> 
     if overrides is not None and overrides.dry_run is not None:
         return overrides.dry_run
     return settings.telegram_dry_run
+
+
+def _build_provider(app_config: AppConfig, settings: AppSettings) -> FlightProvider:
+    """Instantiate the configured provider or raise a user-facing error."""
+
+    try:
+        return build_provider(app_config.provider, settings)
+    except ProviderConfigurationError as exc:
+        raise PipelineRunError(str(exc)) from exc
 
 
 def _build_notifier(settings: AppSettings, *, dry_run: bool) -> TelegramNotifier:
@@ -215,7 +224,7 @@ def run_pipeline(
     database = StateDatabase(DatabaseConfig(path=app_settings.db_path))
     scan_started_at = current_at.astimezone(UTC) if current_at is not None else datetime.now(UTC)
     scan_run_id = database.start_scan_run(started_at=scan_started_at)
-    provider = MockFlightProvider()
+    provider = _build_provider(app_config, app_settings)
 
     checked_offer_count = 0
     candidate_count = 0
@@ -235,10 +244,16 @@ def run_pipeline(
                     weekend_windows=weekend_windows,
                 )
             )
+        except ProviderError as exc:
+            LOGGER.exception("Provider search failed")
+            raise PipelineRunError(
+                f"Scan failed while fetching flight offers from provider '{app_config.provider}': "
+                f"{exc}"
+            ) from exc
         except Exception as exc:
             LOGGER.exception("Provider search failed")
             raise PipelineRunError(
-                "Scan failed while fetching flight offers from the mock provider."
+                f"Scan failed while fetching flight offers from provider '{app_config.provider}'."
             ) from exc
 
         checked_offer_count, all_candidates = _collect_candidates(
@@ -277,7 +292,7 @@ def run_pipeline(
 
     return PipelineResult(
         status=scan_status,
-        provider_name=PROVIDER_NAME,
+        provider_name=app_config.provider,
         dry_run=effective_dry_run,
         destination_count=len(active_destinations),
         weekend_window_count=len(weekend_windows),
@@ -290,5 +305,5 @@ def run_pipeline(
         scan_run_id=scan_run_id,
         db_path=str(app_settings.db_path),
         source=str(app_settings.config_path),
-        message="Weekend Radar completed a full mock scan run.",
+        message=f"Weekend Radar completed a full {app_config.provider} scan run.",
     )
