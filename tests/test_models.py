@@ -1,9 +1,15 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, time
 
 import pytest
 from pydantic import ValidationError
 
-from weekend_radar.models import AppConfig, Destination, FlightOffer, WeekendWindow
+from weekend_radar.models import (
+    AppConfig,
+    Destination,
+    FlightOffer,
+    WeekendSearchRules,
+    WeekendWindow,
+)
 
 
 def test_destination_normalizes_code_and_tags() -> None:
@@ -61,13 +67,17 @@ def test_flight_offer_rejects_invalid_timeline() -> None:
         )
 
 
-def test_weekend_window_requires_valid_night_range() -> None:
+def test_weekend_window_requires_matching_nights() -> None:
     with pytest.raises(ValidationError):
         WeekendWindow(
-            departure_weekdays=[4, 5],
-            return_weekdays=[6, 0],
-            min_nights=3,
-            max_nights=2,
+            depart_date=date(2026, 7, 3),
+            return_date=date(2026, 7, 5),
+            pattern_name="friday_evening_to_sunday_evening",
+            preferred_outbound_start_time=time(hour=15),
+            preferred_outbound_end_time=time(hour=22, minute=30),
+            preferred_return_start_time=time(hour=15),
+            preferred_return_end_time=time(hour=23),
+            nights=3,
         )
 
 
@@ -97,7 +107,7 @@ def test_app_config_normalizes_threshold_overrides() -> None:
                 nature_score=4,
             )
         ],
-        weekend_window=WeekendWindow(),
+        weekend_search=WeekendSearchRules(),
         default_price_threshold_eur=140,
         destination_thresholds_eur={"bcn": 150},
     )
@@ -116,7 +126,7 @@ def test_app_config_rejects_unknown_threshold_override_code() -> None:
                     nature_score=4,
                 )
             ],
-            weekend_window=WeekendWindow(),
+            weekend_search=WeekendSearchRules(),
             default_price_threshold_eur=140,
             destination_thresholds_eur={"ATH": 150},
         )

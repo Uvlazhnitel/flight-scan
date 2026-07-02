@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime, time
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -37,31 +37,59 @@ class Destination(BaseModel):
         return [value.strip().lower() for value in values]
 
 
-class WeekendWindow(BaseModel):
-    """Rules that define which outbound and return timing counts as a weekend trip."""
+class WeekendSearchRules(BaseModel):
+    """Config describing how weekend search windows should be generated for Riga."""
 
-    departure_weekdays: list[int] = Field(default_factory=lambda: [4, 5])
-    return_weekdays: list[int] = Field(default_factory=lambda: [6, 0])
-    min_nights: int = Field(default=2, ge=1)
-    max_nights: int = Field(default=3, ge=1)
+    timezone: str = "Europe/Riga"
+    future_windows_count: int = Field(default=8, ge=1)
+    enabled_patterns: list[str] = Field(
+        default_factory=lambda: [
+            "friday_evening_to_sunday_evening",
+            "friday_evening_to_monday_morning",
+            "saturday_morning_to_sunday_evening",
+            "saturday_morning_to_monday_morning",
+        ]
+    )
 
-    @field_validator("departure_weekdays", "return_weekdays")
+    @field_validator("enabled_patterns")
     @classmethod
-    def validate_weekdays(cls, values: list[int]) -> list[int]:
-        """Ensure weekday values are unique and within Python's 0-6 weekday range."""
+    def validate_enabled_patterns(cls, values: list[str]) -> list[str]:
+        """Ensure at least one unique named trip pattern is configured."""
 
         if not values:
-            raise ValueError("weekday lists must not be empty")
-        if any(value < 0 or value > 6 for value in values):
-            raise ValueError("weekday values must be between 0 and 6")
+            raise ValueError("enabled_patterns must not be empty")
         return list(dict.fromkeys(values))
 
-    @model_validator(mode="after")
-    def validate_night_range(self) -> Self:
-        """Ensure the configured weekend night range is coherent."""
 
-        if self.max_nights < self.min_nights:
-            raise ValueError("max_nights must be greater than or equal to min_nights")
+class WeekendWindow(BaseModel):
+    """A concrete weekend trip search window generated for Riga-local travel planning."""
+
+    depart_date: date
+    return_date: date
+    pattern_name: str = Field(min_length=1)
+    preferred_outbound_start_time: time
+    preferred_outbound_end_time: time
+    preferred_return_start_time: time
+    preferred_return_end_time: time
+    nights: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def validate_window(self) -> Self:
+        """Ensure the generated weekend window is chronologically coherent."""
+
+        if self.return_date < self.depart_date:
+            raise ValueError("return_date must not be earlier than depart_date")
+        if self.preferred_outbound_end_time <= self.preferred_outbound_start_time:
+            raise ValueError(
+                "preferred_outbound_end_time must be later than preferred_outbound_start_time"
+            )
+        if self.preferred_return_end_time <= self.preferred_return_start_time:
+            raise ValueError(
+                "preferred_return_end_time must be later than preferred_return_start_time"
+            )
+        actual_nights = (self.return_date - self.depart_date).days
+        if actual_nights != self.nights:
+            raise ValueError("nights must match the date span between depart_date and return_date")
         return self
 
 
@@ -136,7 +164,7 @@ class AppConfig(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     destinations: list[Destination] = Field(default_factory=list)
-    weekend_window: WeekendWindow
+    weekend_search: WeekendSearchRules
     default_price_threshold_eur: int = Field(gt=0)
     destination_thresholds_eur: dict[str, int] = Field(default_factory=dict)
 
