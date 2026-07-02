@@ -2,7 +2,7 @@
 
 Weekend Radar is a small personal app that watches for cheap weekend flight ideas from Riga Airport (`RIX`) and sends a Telegram alert when a good deal appears.
 
-This repository now includes the MVP pipeline through local SQLite persistence. The app still uses mock flight data and a placeholder Telegram boundary, but it now runs a full local scan flow, stores checked offers, and suppresses duplicate alerts.
+This repository now includes the MVP pipeline through local SQLite persistence and Telegram notification delivery. The app still uses mock flight data, but it now runs a full local scan flow, stores checked offers, suppresses duplicate alerts, and can either print notifications in dry-run mode or send them to Telegram.
 The MVP currently uses deterministic mock flight data only and does not call any real flight API.
 
 ## MVP Goal
@@ -85,7 +85,6 @@ Current contents:
 Current omissions:
 
 - no real flight API integration yet,
-- no real Telegram sending yet,
 - no CI yet.
 
 ## Data Source
@@ -109,6 +108,12 @@ It now also remembers previous alerts in SQLite:
 - duplicate notifications are suppressed for the same route/date/provider,
 - a deal can notify again only after a `15 EUR` price drop or after `14 days`.
 
+Telegram delivery now works in two modes:
+
+- dry-run is the default and prints messages locally instead of sending them,
+- real send mode posts to the Telegram Bot API with `httpx`,
+- Telegram failures are logged and do not stop the rest of the scan.
+
 ## Local Setup
 
 1. Install Python 3.12 or newer.
@@ -121,6 +126,17 @@ cp .env.example .env
 uv sync
 ```
 
+## Telegram Setup
+
+1. Open Telegram and message [@BotFather](https://t.me/BotFather).
+2. Run `/newbot` and follow the prompts to create a bot.
+3. Copy the bot token into `TELEGRAM_BOT_TOKEN` in `.env`.
+4. Send at least one message to your bot from the Telegram account that should receive alerts.
+5. Open `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser after messaging the bot.
+6. Find your chat id in the response and place it in `TELEGRAM_CHAT_ID`.
+7. Leave `WEEKEND_RADAR_TELEGRAM_DRY_RUN=true` while testing locally.
+8. Change `WEEKEND_RADAR_TELEGRAM_DRY_RUN=false` only when you want real Telegram sends.
+
 ## Run Checks
 
 ```bash
@@ -131,7 +147,7 @@ uv run ruff format --check .
 
 ## Run the App
 
-The current entrypoint runs a full local mock scan. It reads the sample YAML file, initializes SQLite automatically, stores checked offers, applies filtering and scoring, and decides whether a notification would be sent.
+The current entrypoint runs a full local mock scan. It reads the sample YAML file, initializes SQLite automatically, stores checked offers, applies filtering and scoring, and either prints notifications in dry-run mode or sends them to Telegram.
 
 ```bash
 uv run python -m weekend_radar.main

@@ -94,14 +94,16 @@ Expected interface shape:
 Responsibilities:
 
 - format outbound Telegram messages,
+- support dry-run output for safe local testing,
 - send them through `httpx`,
-- isolate HTTP transport and Telegram-specific payload details.
+- isolate HTTP transport and Telegram-specific payload details,
+- log Telegram failures without aborting the whole scan.
 
 Required interface:
 
 ```python
 class Notifier(Protocol):
-    async def send_deal(...) -> None:
+    def send_deal(...) -> bool:
         ...
 ```
 
@@ -134,7 +136,8 @@ MVP runtime model:
 7. Persist every checked offer in SQLite with a stable deal key.
 8. Check SQLite to avoid duplicate notifications for the same origin, destination, dates, and provider.
 9. Re-notify only when the price improved by at least `15 EUR` or the previous alert is older than `14 days`.
-10. Send Telegram alerts for new qualifying deals and persist notification history.
+10. Send Telegram alerts for new qualifying deals or print them in dry-run mode.
+11. Persist notification history only after a successful send or intentional dry-run delivery.
 
 ## Data and Configuration Boundaries
 
