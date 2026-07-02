@@ -1,8 +1,10 @@
 default_price_threshold_eur: 140
 destination_thresholds_eur:
-  FCO: 120
-  BCN: 150
-  ATH: 170
+  DUB: 170
+  EDI: 170
+  LIS: 180
+  OSL: 180
+  KEF: 220
 weekend_search:
   timezone: Europe/Riga
   future_windows_count: 8
@@ -15,27 +17,283 @@ offer_filters:
   max_price_eur: 120
   direct_only: true
 destinations:
-  - code: FCO
-    city: Rome
-    country: Italy
-    lat: 41.8003
-    lon: 12.2389
-    tags: [city, food, history]
-    nature_score: 3
-    enabled: true
-  - code: BCN
-    city: Barcelona
+  - code: AGP
+    city: Malaga
     country: Spain
-    lat: 41.2974
-    lon: 2.0833
-    tags: [beach, city, food]
-    nature_score: 4
+    lat: 36.6749
+    lon: -4.4991
+    tags: [sea, food, cheap, citybreak]
+    nature_score: 6
+    enabled: true
+  - code: ARN
+    city: Stockholm
+    country: Sweden
+    lat: 59.6519
+    lon: 17.9186
+    tags: [citybreak, culture, food, lake]
+    nature_score: 6
     enabled: true
   - code: ATH
     city: Athens
     country: Greece
     lat: 37.9364
     lon: 23.9475
-    tags: [history, islands, sun]
+    tags: [culture, food, sea, island]
+    nature_score: 6
+    enabled: true
+  - code: BCN
+    city: Barcelona
+    country: Spain
+    lat: 41.2974
+    lon: 2.0833
+    tags: [citybreak, culture, food, sea]
     nature_score: 5
+    enabled: true
+  - code: BER
+    city: Berlin
+    country: Germany
+    lat: 52.3667
+    lon: 13.5033
+    tags: [citybreak, culture, food, cheap]
+    nature_score: 3
+    enabled: true
+  - code: BGY
+    city: Bergamo
+    country: Italy
+    lat: 45.6739
+    lon: 9.7042
+    tags: [citybreak, food, cheap, mountains]
+    nature_score: 6
+    enabled: true
+  - code: BUD
+    city: Budapest
+    country: Hungary
+    lat: 47.4369
+    lon: 19.2556
+    tags: [citybreak, culture, food, cheap]
+    nature_score: 4
+    enabled: true
+  - code: CPH
+    city: Copenhagen
+    country: Denmark
+    lat: 55.6181
+    lon: 12.6561
+    tags: [citybreak, culture, food, sea]
+    nature_score: 4
+    enabled: true
+  - code: DBV
+    city: Dubrovnik
+    country: Croatia
+    lat: 42.5614
+    lon: 18.2682
+    tags: [sea, island, culture, nature]
+    nature_score: 8
+    enabled: true
+  - code: DUB
+    city: Dublin
+    country: Ireland
+    lat: 53.4213
+    lon: -6.2701
+    tags: [citybreak, culture, food, sea]
+    nature_score: 5
+    enabled: true
+  - code: EDI
+    city: Edinburgh
+    country: United Kingdom
+    lat: 55.95
+    lon: -3.3725
+    tags: [citybreak, culture, food, hiking]
+    nature_score: 6
+    enabled: true
+  - code: FCO
+    city: Rome
+    country: Italy
+    lat: 41.8003
+    lon: 12.2389
+    tags: [citybreak, culture, food, cheap]
+    nature_score: 3
+    enabled: true
+  - code: GDN
+    city: Gdansk
+    country: Poland
+    lat: 54.3776
+    lon: 18.4662
+    tags: [citybreak, culture, cheap, sea]
+    nature_score: 5
+    enabled: true
+  - code: GVA
+    city: Geneva
+    country: Switzerland
+    lat: 46.2381
+    lon: 6.1089
+    tags: [lake, mountains, citybreak, nature]
+    nature_score: 8
+    enabled: true
+  - code: HEL
+    city: Helsinki
+    country: Finland
+    lat: 60.3172
+    lon: 24.9633
+    tags: [citybreak, culture, food, sea]
+    nature_score: 4
+    enabled: true
+  - code: INN
+    city: Innsbruck
+    country: Austria
+    lat: 47.2602
+    lon: 11.3439
+    tags: [mountains, hiking, nature, citybreak]
+    nature_score: 9
+    enabled: false
+  - code: KEF
+    city: Reykjavik
+    country: Iceland
+    lat: 63.985
+    lon: -22.6056
+    tags: [nature, hiking, island, mountains]
+    nature_score: 10
+    enabled: false
+  - code: KRK
+    city: Krakow
+    country: Poland
+    lat: 50.0777
+    lon: 19.7848
+    tags: [citybreak, culture, food, cheap]
+    nature_score: 4
+    enabled: true
+  - code: LGW
+    city: London
+    country: United Kingdom
+    lat: 51.1537
+    lon: -0.1821
+    tags: [citybreak, culture, food, cheap]
+    nature_score: 3
+    enabled: true
+  - code: LIS
+    city: Lisbon
+    country: Portugal
+    lat: 38.7742
+    lon: -9.1342
+    tags: [citybreak, food, sea, culture]
+    nature_score: 6
+    enabled: true
+  - code: MLA
+    city: Malta
+    country: Malta
+    lat: 35.8575
+    lon: 14.4775
+    tags: [island, sea, food, culture]
+    nature_score: 7
+    enabled: true
+  - code: MXP
+    city: Milan
+    country: Italy
+    lat: 45.63
+    lon: 8.7231
+    tags: [citybreak, food, culture, cheap]
+    nature_score: 4
+    enabled: true
+  - code: MUC
+    city: Munich
+    country: Germany
+    lat: 48.3538
+    lon: 11.7861
+    tags: [citybreak, food, culture, mountains]
+    nature_score: 5
+    enabled: true
+  - code: NCE
+    city: Nice
+    country: France
+    lat: 43.6653
+    lon: 7.215
+    tags: [sea, food, citybreak, culture]
+    nature_score: 6
+    enabled: true
+  - code: OPO
+    city: Porto
+    country: Portugal
+    lat: 41.2481
+    lon: -8.6814
+    tags: [citybreak, food, sea, cheap]
+    nature_score: 6
+    enabled: true
+  - code: OSL
+    city: Oslo
+    country: Norway
+    lat: 60.1939
+    lon: 11.1004
+    tags: [citybreak, lake, nature, hiking]
+    nature_score: 8
+    enabled: true
+  - code: PMI
+    city: Palma
+    country: Spain
+    lat: 39.5517
+    lon: 2.7388
+    tags: [island, sea, food, nature]
+    nature_score: 7
+    enabled: true
+  - code: PRG
+    city: Prague
+    country: Czech Republic
+    lat: 50.1008
+    lon: 14.26
+    tags: [citybreak, culture, food, cheap]
+    nature_score: 3
+    enabled: true
+  - code: SPU
+    city: Split
+    country: Croatia
+    lat: 43.5389
+    lon: 16.298
+    tags: [sea, island, food, nature]
+    nature_score: 8
+    enabled: true
+  - code: TLL
+    city: Tallinn
+    country: Estonia
+    lat: 59.4133
+    lon: 24.8328
+    tags: [citybreak, culture, cheap, sea]
+    nature_score: 4
+    enabled: true
+  - code: VCE
+    city: Venice
+    country: Italy
+    lat: 45.5053
+    lon: 12.3519
+    tags: [citybreak, culture, food, sea]
+    nature_score: 4
+    enabled: true
+  - code: VIE
+    city: Vienna
+    country: Austria
+    lat: 48.1103
+    lon: 16.5697
+    tags: [citybreak, culture, food, cheap]
+    nature_score: 3
+    enabled: true
+  - code: VNO
+    city: Vilnius
+    country: Lithuania
+    lat: 54.6341
+    lon: 25.2858
+    tags: [citybreak, culture, cheap, food]
+    nature_score: 4
+    enabled: true
+  - code: WAW
+    city: Warsaw
+    country: Poland
+    lat: 52.1657
+    lon: 20.9671
+    tags: [citybreak, culture, food, cheap]
+    nature_score: 3
+    enabled: true
+  - code: ZRH
+    city: Zurich
+    country: Switzerland
+    lat: 47.4581
+    lon: 8.5555
+    tags: [lake, mountains, citybreak, nature]
+    nature_score: 8
     enabled: false
