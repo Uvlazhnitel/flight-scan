@@ -1,7 +1,7 @@
 import asyncio
 import json
 import sqlite3
-from datetime import datetime
+from datetime import UTC, date, datetime, time
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -72,6 +72,28 @@ def build_settings(
 
 def load_fixture(name: str) -> dict[str, object]:
     return json.loads((FIXTURES_DIR / name).read_text(encoding="utf-8"))
+
+
+def build_good_offer(
+    *,
+    price_eur: int,
+    checked_at: datetime,
+) -> FlightOffer:
+    return FlightOffer(
+        provider="mock",
+        origin="RIX",
+        destination="FCO",
+        depart_at=datetime.combine(date(2026, 7, 10), time(17, 30), tzinfo=UTC),
+        arrive_at=datetime.combine(date(2026, 7, 10), time(20, 10), tzinfo=UTC),
+        return_depart_at=datetime.combine(date(2026, 7, 12), time(18, 25), tzinfo=UTC),
+        return_arrive_at=datetime.combine(date(2026, 7, 12), time(21, 0), tzinfo=UTC),
+        price_eur=price_eur,
+        currency="EUR",
+        airline="Air Baltic Mock",
+        stops=0,
+        booking_url="https://mock.example/book/fco",
+        checked_at=checked_at,
+    )
 
 
 def test_run_pipeline_dry_run_records_notifications(tmp_path: Path) -> None:
@@ -304,6 +326,52 @@ def test_run_pipeline_supports_amadeus_provider_with_mocked_http(
     assert result.candidate_count == 1
     assert result.notified_count == 1
     assert result.failed_notification_count == 0
+
+
+def test_run_pipeline_price_drop_reenables_notification(
+    tmp_path: Path,
+    monkeypatch: object,
+) -> None:
+    settings = build_settings(tmp_path, dry_run=True)
+    first_checked_at = datetime(2026, 7, 6, 12, 0, tzinfo=UTC)
+    second_checked_at = datetime(2026, 7, 7, 12, 0, tzinfo=UTC)
+    offers_by_call = [
+        [build_good_offer(price_eur=80, checked_at=first_checked_at)],
+        [build_good_offer(price_eur=65, checked_at=second_checked_at)],
+    ]
+
+    async def fake_search_weekend_flights(*args: object, **kwargs: object) -> list[FlightOffer]:
+        return offers_by_call.pop(0)
+
+    monkeypatch.setattr(
+        "weekend_radar.providers.mock.MockFlightProvider.search_weekend_flights",
+        fake_search_weekend_flights,
+    )
+
+    first_result = run_pipeline(
+        settings,
+        current_at=datetime(2026, 7, 6, 12, 0, tzinfo=RIGA),
+        overrides=ScanOverrides(dry_run=True, weeks=1, limit=1),
+    )
+    second_result = run_pipeline(
+        settings,
+        current_at=datetime(2026, 7, 7, 12, 0, tzinfo=RIGA),
+        overrides=ScanOverrides(dry_run=True, weeks=1, limit=1),
+    )
+
+    assert first_result.notified_count == 1
+    assert second_result.notified_count == 1
+    assert second_result.skipped_duplicate_count == 0
+
+    connection = sqlite3.connect(settings.db_path)
+    try:
+        notified_rows = connection.execute(
+            "SELECT notified_price_eur FROM notified_deals ORDER BY id"
+        ).fetchall()
+    finally:
+        connection.close()
+
+    assert [row[0] for row in notified_rows] == [80, 65]
 
 
 def test_main_returns_success_with_sample_data(monkeypatch: object) -> None:

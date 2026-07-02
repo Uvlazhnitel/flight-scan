@@ -180,6 +180,13 @@ def _process_notifications(
         decision = database.should_notify(candidate, evaluated_at=candidate.offer.checked_at)
         if not decision.should_notify:
             skipped_duplicate_count += 1
+            LOGGER.info(
+                "Skipping duplicate notification for %s -> %s on %s (%s)",
+                candidate.offer.origin,
+                candidate.offer.destination,
+                candidate.offer.depart_at.date().isoformat(),
+                decision.reason,
+            )
             continue
 
         message_text = notifier.format_deal_candidate(candidate)
@@ -209,7 +216,7 @@ def run_pipeline(
     current_at: datetime | None = None,
     overrides: ScanOverrides | None = None,
 ) -> PipelineResult:
-    """Run one full mock-backed scan with SQLite persistence and deduplication."""
+    """Run one full scan with the configured provider, SQLite persistence, and deduplication."""
 
     app_settings = settings or load_settings()
     base_config = load_app_config(Path(app_settings.config_path))
@@ -225,6 +232,14 @@ def run_pipeline(
     scan_started_at = current_at.astimezone(UTC) if current_at is not None else datetime.now(UTC)
     scan_run_id = database.start_scan_run(started_at=scan_started_at)
     provider = _build_provider(app_config, app_settings)
+
+    LOGGER.info(
+        "Starting scan with provider=%s mode=%s db=%s config=%s",
+        app_config.provider,
+        "dry-run" if effective_dry_run else "real-send",
+        app_settings.db_path,
+        app_settings.config_path,
+    )
 
     checked_offer_count = 0
     candidate_count = 0
@@ -305,5 +320,9 @@ def run_pipeline(
         scan_run_id=scan_run_id,
         db_path=str(app_settings.db_path),
         source=str(app_settings.config_path),
-        message=f"Weekend Radar completed a full {app_config.provider} scan run.",
+        message=(
+            "Weekend Radar completed a full "
+            f"{app_config.provider} scan run in "
+            f"{'dry-run' if effective_dry_run else 'real-send'} mode."
+        ),
     )

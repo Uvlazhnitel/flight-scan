@@ -26,7 +26,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="weekend-radar",
-        description="Scan mock weekend flight deals from Riga and notify or dry-run them.",
+        description=(
+            "Scan weekend flight deals from Riga with the configured provider and either "
+            "print or send notifications."
+        ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -34,8 +37,8 @@ def build_parser() -> argparse.ArgumentParser:
         "scan",
         help="Run one full weekend-deal scan",
         description=(
-            "Load YAML config, fetch mock flight offers, score the top deals, "
-            "then print or send notifications."
+            "Load YAML config, fetch flight offers from the configured provider, score the "
+            "top deals, then print or send notifications."
         ),
     )
     scan_parser.add_argument(

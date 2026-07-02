@@ -84,7 +84,7 @@ Current contents:
 Current omissions:
 
 - real provider support is limited to Amadeus Self-Service,
-- no CI yet.
+- no deployment automation yet.
 
 ## Data Source
 
@@ -112,7 +112,7 @@ The app also applies practical weekend filters before later scoring:
 
 It now also remembers previous alerts in SQLite:
 
-- every checked mock offer is stored locally,
+- every checked offer is stored locally,
 - duplicate notifications are suppressed for the same route/date/provider,
 - a deal can notify again only after a `15 EUR` price drop or after `14 days`.
 
@@ -144,9 +144,72 @@ uv run weekend-radar scan --dry-run
 
 Expected first-run result:
 
-- the app prints mock weekend deal messages to your terminal,
+- the app prints weekend deal messages to your terminal,
 - a SQLite file is created at `data/weekend_radar.sqlite3`,
 - the summary says the provider is `mock` and the mode is `dry-run`.
+
+The copied `.env.example` file is safe for this first dry-run even though it contains placeholder secret values. Dry-run mode does not try to send Telegram messages and the shipped YAML still uses `provider: mock`.
+
+## First Real Run
+
+Use this sequence if you want to go from a clean checkout to a real personal-use test without guessing.
+
+### 1. First safe local run
+
+```bash
+cp .env.example .env
+uv sync
+uv run weekend-radar scan --dry-run
+```
+
+Success looks like this:
+
+- deal messages are printed in your terminal,
+- a SQLite file appears at `data/weekend_radar.sqlite3`,
+- the summary says `Provider: mock (mock data)` and `Mode: dry-run`.
+
+### 2. First real Telegram delivery
+
+Keep `provider: mock` in [data/destinations.yaml](/Users/uvlazhnitel/Documents/flight-scan/data/destinations.yaml) so you can test delivery without depending on a live flight API.
+
+Set these values in `.env`:
+
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+- `WEEKEND_RADAR_TELEGRAM_DRY_RUN=false`
+
+Then run:
+
+```bash
+uv run weekend-radar scan --limit 1
+```
+
+Success looks like this:
+
+- your Telegram bot sends you one deal message,
+- the terminal summary says `Mode: real Telegram send`,
+- the SQLite database records the notification so an immediate repeat run may send nothing.
+
+If a repeat run prints no new deal, that is often expected: duplicate protection is working.
+
+### 3. First live-provider test
+
+When you are ready to try live flight data:
+
+1. Set `AMADEUS_API_KEY` in `.env`.
+2. Set `AMADEUS_API_SECRET` in `.env`.
+3. Change `provider: mock` to `provider: amadeus` in [data/destinations.yaml](/Users/uvlazhnitel/Documents/flight-scan/data/destinations.yaml).
+4. Keep dry-run enabled for the first live test.
+
+```bash
+uv run weekend-radar scan --dry-run
+```
+
+Success looks like this:
+
+- the run completes without a config error,
+- live-provider results are printed locally instead of being sent,
+- you can switch Telegram sending on later after confirming the provider path works.
 
 ## Real Provider Setup
 
@@ -187,7 +250,7 @@ uv run ruff format --check .
 
 ## Run the App
 
-The current app runs a full local mock scan from one command. It reads the sample YAML file, initializes SQLite automatically, stores checked offers, filters and scores them, keeps the top deals, and either prints notifications in dry-run mode or sends them to Telegram.
+The current app runs a full local scan from one command. It reads the sample YAML file, initializes SQLite automatically, stores checked offers, filters and scores them, keeps the top deals, and either prints notifications in dry-run mode or sends them to Telegram.
 
 ```bash
 uv run weekend-radar scan --dry-run
@@ -215,6 +278,16 @@ Important operator note:
 - dry-run prints whatever the current provider produced, instead of sending it to Telegram,
 - with the shipped config that still means mock data,
 - real Telegram mode changes delivery only; it does not change which provider is selected in YAML.
+
+## Release Readiness
+
+The repository now includes a GitHub Actions workflow that runs the same release-readiness checks used locally:
+
+- `uv run pytest`
+- `uv run ruff check .`
+- `uv run ruff format --check .`
+
+The workflow supports `workflow_dispatch` for a manual run and also runs on pull requests and pushes to `main`.
 
 ## Current Structure
 
