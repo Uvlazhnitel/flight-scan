@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from weekend_radar.config import AppSettings, load_destination_catalog, load_settings
+from weekend_radar.config import AppSettings, load_app_config, load_settings
 from weekend_radar.filters import enabled_destinations
 from weekend_radar.models import PipelineResult
 
@@ -13,8 +13,8 @@ def run_pipeline(settings: AppSettings | None = None) -> PipelineResult:
     """Load example config and return a small milestone-one status object."""
 
     app_settings = settings or load_settings()
-    catalog = load_destination_catalog(Path(app_settings.config_path))
-    active_destinations = enabled_destinations(catalog.destinations)
+    app_config = load_app_config(Path(app_settings.config_path))
+    active_destinations = enabled_destinations(app_config.destinations)
 
     return PipelineResult(
         status="ok",

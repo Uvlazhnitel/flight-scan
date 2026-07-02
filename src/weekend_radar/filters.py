@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from weekend_radar.dates import is_weekend_trip
-from weekend_radar.models import Destination, FlightOption
+from weekend_radar.models import Destination, FlightOffer, WeekendWindow
 
 
 def enabled_destinations(destinations: Iterable[Destination]) -> list[Destination]:
@@ -14,7 +13,21 @@ def enabled_destinations(destinations: Iterable[Destination]) -> list[Destinatio
     return [destination for destination in destinations if destination.enabled]
 
 
-def weekend_flights(flights: Iterable[FlightOption]) -> list[FlightOption]:
-    """Keep only flights that match the simple weekend-trip rule."""
+def matches_weekend_window(flight: FlightOffer, weekend_window: WeekendWindow) -> bool:
+    """Check whether a flight fits the configured weekend-trip rules."""
 
-    return [flight for flight in flights if is_weekend_trip(flight.depart_date, flight.return_date)]
+    nights = (flight.return_depart_at.date() - flight.depart_at.date()).days
+    return (
+        flight.depart_at.weekday() in weekend_window.departure_weekdays
+        and flight.return_depart_at.weekday() in weekend_window.return_weekdays
+        and weekend_window.min_nights <= nights <= weekend_window.max_nights
+    )
+
+
+def weekend_flights(
+    flights: Iterable[FlightOffer],
+    weekend_window: WeekendWindow,
+) -> list[FlightOffer]:
+    """Keep only flights that match the configured weekend-trip rule."""
+
+    return [flight for flight in flights if matches_weekend_window(flight, weekend_window)]

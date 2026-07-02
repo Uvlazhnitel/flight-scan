@@ -1,27 +1,36 @@
+import asyncio
 from pathlib import Path
 
 from weekend_radar.config import AppSettings
 from weekend_radar.main import main
+from weekend_radar.models import Destination, FlightOffer
 from weekend_radar.pipeline import run_pipeline
+from weekend_radar.providers.mock import MockFlightProvider
 
 
 def test_run_pipeline_loads_enabled_destinations_from_yaml(tmp_path: Path) -> None:
     config_path = tmp_path / "destinations.yaml"
     config_path.write_text(
         """
+default_price_threshold_eur: 140
+destination_thresholds_eur:
+  FCO: 120
+weekend_window:
+  departure_weekdays: [4, 5]
+  return_weekdays: [6, 0]
+  min_nights: 2
+  max_nights: 3
 destinations:
-  - origin: RIX
-    destination: FCO
+  - code: FCO
     city: Rome
     country: Italy
+    nature_score: 3
     enabled: true
-    threshold_eur: 120
-  - origin: RIX
-    destination: BCN
+  - code: BCN
     city: Barcelona
     country: Spain
+    nature_score: 4
     enabled: false
-    threshold_eur: 150
 """.strip(),
         encoding="utf-8",
     )
@@ -43,3 +52,32 @@ def test_main_returns_success_with_sample_data(monkeypatch: object) -> None:
     monkeypatch.chdir(Path(__file__).resolve().parents[1])
 
     assert main() == 0
+
+
+def test_mock_provider_returns_flight_offer_models() -> None:
+    provider = MockFlightProvider()
+    offers = asyncio.run(
+        provider.search_weekend_flights(
+            origin="RIX",
+            destinations=[],
+        )
+    )
+
+    assert offers == []
+
+    sample_offers = asyncio.run(
+        provider.search_weekend_flights(
+            origin="RIX",
+            destinations=[
+                Destination(
+                    code="FCO",
+                    city="Rome",
+                    country="Italy",
+                    nature_score=3,
+                )
+            ],
+        )
+    )
+
+    assert len(sample_offers) == 1
+    assert isinstance(sample_offers[0], FlightOffer)

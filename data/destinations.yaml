@@ -1,19 +1,35 @@
+default_price_threshold_eur: 140
+destination_thresholds_eur:
+  FCO: 120
+  BCN: 150
+  ATH: 170
+weekend_window:
+  departure_weekdays: [4, 5]
+  return_weekdays: [6, 0]
+  min_nights: 2
+  max_nights: 3
 destinations:
-  - origin: RIX
-    destination: FCO
+  - code: FCO
     city: Rome
     country: Italy
+    lat: 41.8003
+    lon: 12.2389
+    tags: [city, food, history]
+    nature_score: 3
     enabled: true
-    threshold_eur: 120
-  - origin: RIX
-    destination: BCN
+  - code: BCN
     city: Barcelona
     country: Spain
+    lat: 41.2974
+    lon: 2.0833
+    tags: [beach, city, food]
+    nature_score: 4
     enabled: true
-    threshold_eur: 150
-  - origin: RIX
-    destination: ATH
+  - code: ATH
     city: Athens
     country: Greece
+    lat: 37.9364
+    lon: 23.9475
+    tags: [history, islands, sun]
+    nature_score: 5
     enabled: false
-    threshold_eur: 170
