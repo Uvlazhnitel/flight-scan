@@ -30,7 +30,8 @@ Responsibilities:
 Expected design:
 
 - pydantic models for external and internal data,
-- explicit field names for airport codes, dates, price, currency, provider source, and timestamps.
+- explicit field names for airport codes, dates, price, currency, provider source, and timestamps,
+- an `AppConfig` YAML model that holds destinations, one active weekend window, and pricing thresholds.
 
 ### `providers`
 
@@ -44,7 +45,7 @@ Required interface:
 
 ```python
 class FlightProvider(Protocol):
-    async def search_weekend_flights(...) -> list[FlightOption]:
+    async def search_weekend_flights(...) -> list[FlightOffer]:
         ...
 ```
 
@@ -61,13 +62,13 @@ Future extension:
 Responsibilities:
 
 - filter provider results to weekend-friendly trips,
-- evaluate threshold rules,
-- convert qualifying flights into deal candidates,
+- evaluate threshold rules from `AppConfig`,
+- convert qualifying `FlightOffer` objects into `DealCandidate` records with `DealScore`,
 - decide whether a deal is new enough to notify after storage lookup.
 
 Core rule:
 
-- a deal qualifies when `price <= route_threshold` or `price <= global_threshold` when no route-specific threshold exists.
+- a deal qualifies when `price <= destination_threshold` or `price <= global_threshold` when no destination-specific override exists.
 
 ### `storage`
 
@@ -123,7 +124,7 @@ MVP runtime model:
 1. Load environment variables for secrets and file paths.
 2. Load and validate YAML config for routes, weekend rules, and thresholds.
 3. Instantiate the configured `FlightProvider` implementation.
-4. Fetch mock flight options from `RIX`.
+4. Fetch mock `FlightOffer` options from `RIX`.
 5. Filter and evaluate weekend deals.
 6. Check SQLite to avoid duplicate notifications.
 7. Send Telegram alerts for new qualifying deals.
@@ -133,7 +134,7 @@ MVP runtime model:
 
 - Secrets belong in environment variables only.
 - Non-secret operational settings belong in YAML.
-- Route lists, thresholds, preferred destinations, and schedule preferences must not be moved into `.env`.
+- Route lists, thresholds, preferred destinations, and weekend-window preferences must not be moved into `.env`.
 - Tests must inject configuration explicitly and must not depend on a developer machine environment.
 
 ## Testing Boundaries

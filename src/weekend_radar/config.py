@@ -5,10 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from weekend_radar.models import Destination
+from weekend_radar.models import AppConfig
 
 DEFAULT_DATA_PATH = Path("data/destinations.yaml")
 
@@ -29,20 +28,14 @@ class AppSettings(BaseSettings):
     telegram_chat_id: str | None = None
 
 
-class DestinationCatalog(BaseModel):
-    """Validated non-secret destination config loaded from YAML."""
-
-    destinations: list[Destination] = Field(default_factory=list)
-
-
 def load_settings() -> AppSettings:
     """Load application settings from the environment."""
 
     return AppSettings()
 
 
-def load_destination_catalog(path: Path) -> DestinationCatalog:
-    """Read and validate destination examples from YAML."""
+def load_app_config(path: Path) -> AppConfig:
+    """Read and validate non-secret app config from YAML."""
 
     raw_data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return DestinationCatalog.model_validate(raw_data)
+    return AppConfig.model_validate(raw_data)
