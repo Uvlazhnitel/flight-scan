@@ -108,6 +108,12 @@ It now also remembers previous alerts in SQLite:
 - duplicate notifications are suppressed for the same route/date/provider,
 - a deal can notify again only after a `15 EUR` price drop or after `14 days`.
 
+The shipped destination catalog in `data/destinations.yaml` is the manual source of truth for which cities the MVP considers.
+
+- to disable a destination, set `enabled: false` on that entry,
+- to re-enable it later, change the same field back to `true`,
+- manual edits to the YAML file are expected and safe for this MVP.
+
 Telegram delivery now works in two modes:
 
 - dry-run is the default and prints messages locally instead of sending them,
