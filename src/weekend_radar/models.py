@@ -204,5 +204,11 @@ class PipelineResult(BaseModel):
 
     status: str
     destination_count: int = 0
+    weekend_window_count: int = 0
+    checked_offer_count: int = 0
+    candidate_count: int = 0
+    notified_count: int = 0
+    skipped_duplicate_count: int = 0
+    scan_run_id: int | None = None
     source: str
     message: str

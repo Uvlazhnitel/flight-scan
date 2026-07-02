@@ -2,7 +2,7 @@
 
 Weekend Radar is a small personal app that watches for cheap weekend flight ideas from Riga Airport (`RIX`) and sends a Telegram alert when a good deal appears.
 
-This repository now includes the Milestone 1 project skeleton. The app logic is still intentionally minimal, but the Python project, package layout, placeholder pipeline, tests, and tooling are in place.
+This repository now includes the MVP pipeline through local SQLite persistence. The app still uses mock flight data and a placeholder Telegram boundary, but it now runs a full local scan flow, stores checked offers, and suppresses duplicate alerts.
 The MVP currently uses deterministic mock flight data only and does not call any real flight API.
 
 ## MVP Goal
@@ -86,7 +86,6 @@ Current omissions:
 
 - no real flight API integration yet,
 - no real Telegram sending yet,
-- no production SQLite logic yet,
 - no CI yet.
 
 ## Data Source
@@ -103,6 +102,12 @@ The app also applies practical weekend filters before later scoring:
 - direct flights are required by default,
 - offers with awkward departure or arrival times are rejected,
 - disabled destinations are ignored.
+
+It now also remembers previous alerts in SQLite:
+
+- every checked mock offer is stored locally,
+- duplicate notifications are suppressed for the same route/date/provider,
+- a deal can notify again only after a `15 EUR` price drop or after `14 days`.
 
 ## Local Setup
 
@@ -124,9 +129,9 @@ uv run ruff check .
 uv run ruff format --check .
 ```
 
-## Run the Skeleton
+## Run the App
 
-The current entrypoint only proves that the project is wired correctly. It reads the sample YAML file, configures logging, and exits successfully.
+The current entrypoint runs a full local mock scan. It reads the sample YAML file, initializes SQLite automatically, stores checked offers, applies filtering and scoring, and decides whether a notification would be sent.
 
 ```bash
 uv run python -m weekend_radar.main
